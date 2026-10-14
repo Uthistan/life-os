@@ -1,98 +1,101 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { DailyProgress } from '@/components/daily-progress';
+import { OfficeScheduleCard } from '@/components/office-schedule-card';
+import { RoutineRow } from '@/components/routine-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
+import { Routines } from '@/constants/daily-plan';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+export default function TodayScreen() {
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  // Captured on mount: the dashboard does not roll over at midnight while open.
+  const [today] = useState(() => new Date());
+  const [completedIds, setCompletedIds] = useState<ReadonlySet<string>>(() => new Set());
+
+  function toggleRoutine(id: string) {
+    setCompletedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
 
-export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
+    <ScrollView
+      style={[styles.scrollView, { backgroundColor: theme.background }]}
+      contentContainerStyle={[
+        styles.content,
+        {
+          paddingTop: insets.top + Spacing.four,
+          paddingBottom: insets.bottom + BottomTabInset + Spacing.three,
+        },
+      ]}>
+      <View>
+        <ThemedText type="small" themeColor="textSecondary">
+          {today.toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+          })}
         </ThemedText>
+        <ThemedText type="subtitle">Today</ThemedText>
+      </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
+      <DailyProgress completedCount={completedIds.size} totalCount={Routines.length} />
+
+      <View style={styles.section}>
+        <ThemedText type="smallBold" themeColor="textSecondary">
+          Routines
+        </ThemedText>
+        <ThemedView type="backgroundElement" style={styles.routineList}>
+          {Routines.map((routine) => (
+            <RoutineRow
+              key={routine.id}
+              routine={routine}
+              isCompleted={completedIds.has(routine.id)}
+              onToggle={toggleRoutine}
+            />
+          ))}
         </ThemedView>
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <View style={styles.section}>
+        <ThemedText type="smallBold" themeColor="textSecondary">
+          Schedule
+        </ThemedText>
+        <OfficeScheduleCard today={today} />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+  content: {
     gap: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    width: '100%',
+    maxWidth: MaxContentWidth,
+    alignSelf: 'center',
   },
-  title: {
-    textAlign: 'center',
+  section: {
+    gap: Spacing.two,
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
+  routineList: {
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.one,
     borderRadius: Spacing.four,
   },
 });
