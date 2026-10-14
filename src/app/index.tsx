@@ -1,34 +1,30 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AppState, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DailyProgress } from '@/components/daily-progress';
 import { OfficeScheduleCard } from '@/components/office-schedule-card';
-import { RoutineRow } from '@/components/routine-row';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Routines } from '@/constants/daily-plan';
+import { TodayRoutines } from '@/components/today-routines';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { toLocalDateKey } from '@/db/routine-completions';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function TodayScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  // Captured on mount: the dashboard does not roll over at midnight while open.
-  const [today] = useState(() => new Date());
-  const [completedIds, setCompletedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [today, setToday] = useState(() => new Date());
 
-  function toggleRoutine(id: string) {
-    setCompletedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
+  // iOS keeps the app alive in the background, so pick up a new day when it returns.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        setToday(new Date());
       }
-      return next;
     });
-  }
+    return () => subscription.remove();
+  }, []);
+
+  const dateKey = toLocalDateKey(today);
 
   return (
     <ScrollView
@@ -51,23 +47,7 @@ export default function TodayScreen() {
         <ThemedText type="subtitle">Today</ThemedText>
       </View>
 
-      <DailyProgress completedCount={completedIds.size} totalCount={Routines.length} />
-
-      <View style={styles.section}>
-        <ThemedText type="smallBold" themeColor="textSecondary">
-          Routines
-        </ThemedText>
-        <ThemedView type="backgroundElement" style={styles.routineList}>
-          {Routines.map((routine) => (
-            <RoutineRow
-              key={routine.id}
-              routine={routine}
-              isCompleted={completedIds.has(routine.id)}
-              onToggle={toggleRoutine}
-            />
-          ))}
-        </ThemedView>
-      </View>
+      <TodayRoutines key={dateKey} dateKey={dateKey} />
 
       <View style={styles.section}>
         <ThemedText type="smallBold" themeColor="textSecondary">
@@ -92,10 +72,5 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.two,
-  },
-  routineList: {
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.four,
   },
 });
