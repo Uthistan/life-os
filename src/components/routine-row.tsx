@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text';
 import { type Routine } from '@/constants/daily-plan';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { formatDuration } from '@/utils/duration';
 
 const CheckedSymbol: SymbolViewProps['name'] = {
   ios: 'checkmark.circle.fill',
@@ -17,15 +18,6 @@ const UncheckedSymbol: SymbolViewProps['name'] = {
   android: 'radio_button_unchecked',
   web: 'radio_button_unchecked',
 };
-
-function formatDuration(minutes: number) {
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder === 0 ? `${hours} hr` : `${hours} hr ${remainder} min`;
-}
 
 type RoutineRowProps = {
   routine: Routine;

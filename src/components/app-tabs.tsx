@@ -24,6 +24,11 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Memory</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="lightbulb" md="lightbulb" />
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="time">
+        <NativeTabs.Trigger.Label>Time</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="timer" md="timer" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

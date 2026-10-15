@@ -25,6 +25,9 @@ export default function AppTabs() {
           <TabTrigger name="memory" href="/memory" asChild>
             <TabButton>Memory</TabButton>
           </TabTrigger>
+          <TabTrigger name="time" href="/time" asChild>
+            <TabButton>Time</TabButton>
+          </TabTrigger>
         </CustomTabList>
       </TabList>
     </Tabs>

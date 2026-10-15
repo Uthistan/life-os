@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { AppState, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { OfficeScheduleCard } from '@/components/office-schedule-card';
@@ -8,22 +7,12 @@ import { TodayRoutines } from '@/components/today-routines';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { toLocalDateKey } from '@/db/routine-completions';
 import { useTheme } from '@/hooks/use-theme';
+import { useToday } from '@/hooks/use-today';
 
 export default function TodayScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const [today, setToday] = useState(() => new Date());
-
-  // iOS keeps the app alive in the background, so pick up a new day when it returns.
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        setToday(new Date());
-      }
-    });
-    return () => subscription.remove();
-  }, []);
-
+  const today = useToday();
   const dateKey = toLocalDateKey(today);
 
   return (

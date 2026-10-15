@@ -25,6 +25,21 @@ const Migrations: readonly string[] = [
       updated_at TEXT NOT NULL
     );
   `,
+  `
+    CREATE TABLE time_sessions (
+      id INTEGER PRIMARY KEY,
+      activity TEXT NOT NULL
+        CHECK (activity IN ('deep-work', 'learning', 'gym', 'personal-time',
+          'intentional-recovery', 'unintentional-scrolling')),
+      started_at TEXT NOT NULL,
+      ended_at TEXT,
+      duration_seconds INTEGER,
+      CHECK ((ended_at IS NULL) = (duration_seconds IS NULL)),
+      CHECK (ended_at IS NULL OR ended_at >= started_at)
+    );
+    CREATE UNIQUE INDEX time_sessions_one_running
+      ON time_sessions (ended_at IS NULL) WHERE ended_at IS NULL;
+  `,
 ];
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
