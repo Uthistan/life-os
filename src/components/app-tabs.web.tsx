@@ -22,6 +22,9 @@ export default function AppTabs() {
           <TabTrigger name="home" href="/" asChild>
             <TabButton>Today</TabButton>
           </TabTrigger>
+          <TabTrigger name="memory" href="/memory" asChild>
+            <TabButton>Memory</TabButton>
+          </TabTrigger>
         </CustomTabList>
       </TabList>
     </Tabs>
